@@ -1,8 +1,13 @@
 package com.appfor.ne3ma.service;
 
 import com.appfor.ne3ma.dto.*;
+import com.appfor.ne3ma.model.InvalidToken;
+import com.appfor.ne3ma.model.RefreshToken;
 import com.appfor.ne3ma.model.User;
+import com.appfor.ne3ma.repository.InvalidTokenRepository;
 import com.appfor.ne3ma.repository.UserRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,25 +25,30 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final InvalidTokenRepository invalidtokenrepo;
+    private final AuthService authService;
     @Override
     public LoginResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
-        }
+//        if (userRepository.existsByEmail(request.getEmail())) {
+//            throw new IllegalArgumentException("Email already exists");
+//        }
 
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
+        user.setFullname(request.getFullname());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPhone(request.getPhone());
         User saved = userRepository.save(user);
         UserPrincipal userPrincipal = new UserPrincipal(saved);
         String token = jwtservice.generateToken(userPrincipal);
+        RefreshToken refreshToken =jwtservice.generateRefreshToken(userPrincipal);
         return new LoginResponse(
                 token,
                 saved.getUsername()
+                ,refreshToken.getToken()
         );
 
 
@@ -57,11 +67,12 @@ public class UserServiceImpl implements UserService {
                 (UserPrincipal) authentication.getPrincipal();
 
         String token = jwtservice.generateToken(userDetails);
-
+        RefreshToken refreshToken =jwtservice.generateRefreshToken(userDetails);
 
         return new LoginResponse(
                 token,
                 userDetails.getUsername()
+                ,refreshToken.getToken()
         );
     }
 
@@ -72,34 +83,34 @@ public class UserServiceImpl implements UserService {
         return toResponse(user);
     }
 
-    @Override
-    public UserResponse updateCurrentUser(String username, UpdateUserRequest request) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (request.getUsername() != null && !request.getUsername().isBlank()) {
-            if (!request.getUsername().equals(user.getUsername())
-                    && userRepository.existsByUsername(request.getUsername())) {
-                throw new IllegalArgumentException("Username already exists");
-            }
-            user.setUsername(request.getUsername());
-        }
-
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            if (!request.getEmail().equals(user.getEmail())
-                    && userRepository.existsByEmail(request.getEmail())) {
-                throw new IllegalArgumentException("Email already exists");
-            }
-            user.setEmail(request.getEmail());
-        }
-
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
-
-        User saved = userRepository.save(user);
-        return toResponse(saved);
-    }
+//    @Override
+//    public UserResponse updateCurrentUser(String username, UpdateUserRequest request) {
+//        User user = userRepository.findByUsername(username)
+//                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+//
+//        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+//            if (!request.getUsername().equals(user.getUsername())
+//                    && userRepository.existsByUsername(request.getUsername())) {
+//                throw new IllegalArgumentException("Username already exists");
+//            }
+//            user.setUsername(request.getUsername());
+//        }
+//
+//        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+//            if (!request.getEmail().equals(user.getFullname())
+//                    && userRepository.existsByEmail(request.getEmail())) {
+//                throw new IllegalArgumentException("Email already exists");
+//            }
+//            user.setFullname(request.getEmail());
+//        }
+//
+//        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+//            user.setPassword(passwordEncoder.encode(request.getPassword()));
+//        }
+//
+//        User saved = userRepository.save(user);
+//        return toResponse(saved);
+//    }
 
     @Override
     public List<UserResponse> listUsers() {
@@ -116,18 +127,31 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
+    @Override
+    public void logout(String authorizationHeader) {
+        if (authorizationHeader == null ||
+                !authorizationHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Invalid token");
+        }
+
+        String token = authorizationHeader.substring(7);
+
+        InvalidToken blacklistedToken = new InvalidToken();
+        blacklistedToken.setToken(token);
+
+        invalidtokenrepo.save(blacklistedToken);
+    }
+
+
+
+
     private UserResponse toResponse(User user) {
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
-                user.getEmail(),
+                user.getFullname(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
-    }
-
-    private boolean isBcryptHash(String password) {
-        return password != null
-                && (password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$"));
     }
 }

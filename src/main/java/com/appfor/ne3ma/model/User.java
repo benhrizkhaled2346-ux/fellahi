@@ -25,11 +25,17 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    @Column(nullable = false)
+    private String fullname;
+
+
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    private String phone;
+
 
     @CreationTimestamp
     private LocalDateTime createdAt;

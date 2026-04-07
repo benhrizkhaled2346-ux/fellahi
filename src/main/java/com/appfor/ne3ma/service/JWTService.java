@@ -1,23 +1,44 @@
 package com.appfor.ne3ma.service;
 
+import com.appfor.ne3ma.model.RefreshToken;
+import com.appfor.ne3ma.model.User;
+import com.appfor.ne3ma.repository.RefreshTokenRepository;
+import com.appfor.ne3ma.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import javax.crypto.KeyGenerator;
 import java.util.Base64;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
 public class JWTService {
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+    @Autowired
+    private UserRepository userRepository;
     private String secretjwt;
+
+    @Value("${jwt.access.expiration}")
+    private  long accessExpiration;
+
+    @Value("${jwt.refresh.expiration}")
+    private long refreshExpiration;
+
+
     public JWTService(){
         try{
             KeyGenerator keygen= KeyGenerator.getInstance("HmacSHA256");
@@ -34,9 +55,31 @@ public class JWTService {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
+                .expiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(Keys.hmacShaKeyFor(secretjwt.getBytes()))
                 .compact();
+    }
+    public RefreshToken generateRefreshToken(UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "User not found: " + userDetails.getUsername()));
+
+        // If a refresh token already exists for the user, update it; otherwise create a new one
+        RefreshToken refreshToken = refreshTokenRepository.findByUser(user)
+                .orElse(new RefreshToken());
+
+        refreshToken.setUser(user);
+        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshExpiration));
+        refreshToken.setToken(UUID.randomUUID().toString());
+
+        return refreshTokenRepository.save(refreshToken);
+    }
+
+
+
+    public boolean isRefreshToken(String token) {
+        String type = extractClaim(token, claims -> claims.get("type", String.class));
+        return "refresh".equals(type);
     }
 
 

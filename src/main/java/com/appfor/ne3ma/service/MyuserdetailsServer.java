@@ -20,5 +20,7 @@ public class MyuserdetailsServer implements UserDetailsService {
         com.appfor.ne3ma.model.User user =userRepository.findByUsername(username)
                 .orElseThrow(()-> new UsernameNotFoundException("user not found"));
         return new com.appfor.ne3ma.security.UserPrincipal(user);
+
+
     }
 }

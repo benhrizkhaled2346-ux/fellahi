@@ -11,9 +11,11 @@ public interface UserService {
 
     UserResponse getCurrentUser(String username);
 
-    UserResponse updateCurrentUser(String username, UpdateUserRequest request);
+//    UserResponse updateCurrentUser(String username, UpdateUserRequest request);
 
     List<UserResponse> listUsers();
 
     void deleteUser(Long id);
+
+    void logout(String header);
 }

@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.appfor.ne3ma.security.JwtFilter;
 import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,16 +27,27 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/api/users/register", "/api/users/login").permitAll()
+                        .requestMatchers("/", "/auth/register", "/auth/login","/auth/refresh").permitAll()
                         .anyRequest().authenticated()
                 )
+
 //                .oauth2Login(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults())
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            response.getWriter().write("Déconnexion réussie !");
+                        })
+                        .permitAll()
+                )
+
                 .build();
+
     }
 
     @Bean

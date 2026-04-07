@@ -1,14 +1,15 @@
 package com.appfor.ne3ma.Controller;
 
-
 import lombok.RequiredArgsConstructor;
+import com.appfor.ne3ma.dto.ChatRequest;
+import com.appfor.ne3ma.dto.MessageResponse;
+import com.appfor.ne3ma.service.AIService;
+import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
@@ -18,14 +19,21 @@ public class AIController {
 
     @PostMapping("/chat")
     public ResponseEntity<MessageResponse> chat(
-            @RequestBody ChatRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @Valid @RequestBody ChatRequest request) {
 
-        MessageResponse response = aiService.processMessage(
-                request.getMessage(),
-                userDetails.getUsername()
-        );
+        MessageResponse response = aiService.processMessage(request, request.getUsername());
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/analyze-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MessageResponse> analyzeImage(
+            @RequestParam("image") MultipartFile image,
+            @RequestParam("username") String username,
+            @RequestParam(value = "prompt", required = false) String prompt,
+            @RequestParam(value = "conversationId", required = false) Long conversationId
+    ) {
+        MessageResponse response = aiService.analyzeImage(image, prompt, conversationId, username);
         return ResponseEntity.ok(response);
     }
 }
