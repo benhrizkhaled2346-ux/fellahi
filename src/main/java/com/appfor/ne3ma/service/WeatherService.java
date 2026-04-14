@@ -1,0 +1,29 @@
+package com.appfor.ne3ma.service;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+
+@Service
+public class WeatherService {
+
+    private final WebClient webClient;
+
+    public WeatherService() {
+        this.webClient = WebClient.builder()
+                .baseUrl("https://api.open-meteo.com/v1")
+                .build();
+    }
+
+    public String getWeather(double lat, double lon) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/forecast")
+                        .queryParam("latitude", lat)
+                        .queryParam("longitude", lon)
+                        .queryParam("current_weather", true)
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+    }
+}
