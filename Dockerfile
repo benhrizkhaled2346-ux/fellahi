@@ -12,9 +12,7 @@ COPY . .
 RUN pip3 install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
     && pip3 install --no-cache-dir pillow
 
-# Build Spring Boot app
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
-# 🚀 START YOUR APP (IMPORTANT)
 CMD ["java", "-jar", "target/your-app.jar"]
