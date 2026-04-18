@@ -15,4 +15,4 @@ RUN pip3 install --no-cache-dir torch torchvision --index-url https://download.p
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
-CMD ["java", "-jar", "target/your-app.jar"]
+CMD ["java", "-jar", "target/ne3mav0.jar"]
