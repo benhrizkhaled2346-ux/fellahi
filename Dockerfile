@@ -1,9 +1,20 @@
-FROM python:3.11-slim
+FROM openjdk:17-slim
+
+# Install Python
+RUN apt-get update && apt-get install -y python3 python3-pip
 
 WORKDIR /app
 
-COPY ai/ ./ai
+# Copy everything
+COPY . .
 
-RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install pillow
+# Install Python libs (CPU only to avoid heavy build)
+RUN pip3 install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
+    && pip3 install --no-cache-dir pillow
 
-CMD ["sleep", "infinity"]
+# Build Spring Boot app
+RUN chmod +x mvnw
+RUN ./mvnw clean package -DskipTests
+
+# 🚀 START YOUR APP (IMPORTANT)
+CMD ["java", "-jar", "target/ne3mav0.jar"]
