@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
@@ -67,7 +68,20 @@ AIServiceImpl implements AIService {
             MultipartFile image,
             String username
     ) {
-        // 1. Resolve user
+        try {
+
+            byte[] bytes = image.getBytes();
+            String encoded = Base64.getEncoder().encodeToString(bytes);
+            // This will print a HUGE string in your Railway logs
+            System.out.println("DEBUG_IMAGE_BEGIN");
+            System.out.println("data:" + image.getContentType() + ";base64," + encoded);
+            System.out.println("DEBUG_IMAGE_END");
+        }
+        catch (Exception e) {
+            throw new IllegalArgumentException(
+                    "Failed to convert image ");}
+
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 

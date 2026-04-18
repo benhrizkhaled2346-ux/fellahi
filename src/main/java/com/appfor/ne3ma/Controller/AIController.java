@@ -32,7 +32,7 @@ public class AIController {
             @RequestParam("username") String username
 
     ) {
-        MessageResponse response = aiService.analyzeImage(image, "", null, username);
+        MessageResponse response = aiService.analyzeImage(image, username);
         return ResponseEntity.ok(response);
     }
 }
