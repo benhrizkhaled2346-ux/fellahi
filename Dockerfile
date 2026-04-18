@@ -17,4 +17,4 @@ RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
 # 🚀 START YOUR APP (IMPORTANT)
-CMD ["java", "-jar", "target/ne3mav0.jar"]
+CMD ["java", "-jar", "target/your-app.jar"]
