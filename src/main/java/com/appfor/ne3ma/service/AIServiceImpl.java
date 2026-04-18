@@ -33,7 +33,7 @@ AIServiceImpl implements AIService {
     private final MessageRepository messageRepository;
     private final AIProvider aiProvider;
     // ✅ Works on Windows (python) and Linux/Mac (python3)
-    private static final String PYTHON_PATH ="python";
+    private static final String PYTHON_PATH ="python3";
     private static final String SCRIPT_PATH = new File("ai/predict.py").getAbsolutePath();
     private final ObjectMapper mapper = new ObjectMapper();
 
