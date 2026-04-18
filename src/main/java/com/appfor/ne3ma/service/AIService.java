@@ -9,8 +9,6 @@ public interface AIService {
 
     MessageResponse analyzeImage(
             MultipartFile image,
-            String prompt,
-            Long conversationId,
             String username
     );
 }

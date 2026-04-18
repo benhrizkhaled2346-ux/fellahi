@@ -65,8 +65,6 @@ AIServiceImpl implements AIService {
     @Override
     public MessageResponse analyzeImage(
             MultipartFile image,
-            String prompt,
-            Long conversationId,
             String username
     ) {
         // 1. Resolve user
@@ -83,19 +81,11 @@ AIServiceImpl implements AIService {
             throw new IllegalArgumentException("Only image files are allowed");
         }
 
-        // 3. Build effective prompt
-        String effectivePrompt = (prompt == null || prompt.isBlank())
-                ? "Describe this image."
-                : prompt.trim();
-
-        // 4. Resolve or create conversation
-        AI_Conversations conversation = resolveConversation(conversationId, effectivePrompt, user);
-
         // 5. Save user message
         Message userMessage = new Message();
-        userMessage.setAI_conv(conversation);
+        userMessage.setAI_conv(null);
         userMessage.setRole(Role.USER);
-        userMessage.setContent("[IMAGE] " + effectivePrompt);
+        userMessage.setContent("[IMAGE] ");
         messageRepository.save(userMessage);
 
         // 6. Call predict.py
@@ -193,12 +183,12 @@ AIServiceImpl implements AIService {
 
 
         Message aiMessage = new Message();
-        aiMessage.setAI_conv(conversation);
+        aiMessage.setAI_conv(null);
         aiMessage.setRole(Role.ASSISTANT);
         aiMessage.setContent(reply);
         messageRepository.save(aiMessage);
 
-        return new MessageResponse(reply, conversation.getId(), LocalDateTime.now());
+        return new MessageResponse(reply, null, LocalDateTime.now());
     }
 
     private AI_Conversations resolveConversation(Long conversationId, String seedMessage, User user) {
