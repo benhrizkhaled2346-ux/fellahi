@@ -28,12 +28,11 @@ public class AIController {
 
     @PostMapping(value = "/analyze-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageResponse> analyzeImage(
-            @RequestParam("image") MultipartFile image,
-            @RequestParam("username") String username,
-            @RequestParam(value = "prompt", required = false) String prompt,
-            @RequestParam(value = "conversationId", required = false) Long conversationId
+            @RequestParam("photo") MultipartFile image,
+            @RequestParam("username") String username
+
     ) {
-        MessageResponse response = aiService.analyzeImage(image, prompt, conversationId, username);
+        MessageResponse response = aiService.analyzeImage(image, "", null, username);
         return ResponseEntity.ok(response);
     }
 }

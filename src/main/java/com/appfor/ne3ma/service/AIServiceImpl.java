@@ -78,6 +78,7 @@ AIServiceImpl implements AIService {
             throw new IllegalArgumentException("Image is required");
         }
         String contentType = image.getContentType();
+        System.out.println(contentType);
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("Only image files are allowed");
         }
