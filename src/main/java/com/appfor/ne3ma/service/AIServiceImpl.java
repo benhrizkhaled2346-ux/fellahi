@@ -11,10 +11,7 @@ import com.appfor.ne3ma.repository.AIConversationRepository;
 import com.appfor.ne3ma.repository.MessageRepository;
 import com.appfor.ne3ma.repository.UserRepository;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
@@ -30,19 +27,17 @@ import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
-public class
-AIServiceImpl implements AIService {
+public class AIServiceImpl implements AIService {
 
+    private final RestTemplate restTemplate;                    // ✅ injected from bean
     private final UserRepository userRepository;
     private final AIConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final AIProvider aiProvider;
-    // ✅ Works on Windows (python) and Linux/Mac (python3)
-    private static final String PYTHON_PATH ="python3";
-    private static final String SCRIPT_PATH = new File("ai/predict.py").getAbsolutePath();
-    private final ObjectMapper mapper = new ObjectMapper();
-    @Value("${pycont.url}")
+
+    @Value("${pycont.url}")                                     // ✅ externalized, not hardcoded
     private String pydocUrl;
+
     @Override
     public MessageResponse processMessage(ChatRequest request, String username) {
         User user = userRepository.findByUsername(username)
@@ -69,14 +64,10 @@ AIServiceImpl implements AIService {
     }
 
     @Override
-    public MessageResponse analyzeImage(
-            MultipartFile image,
-            String username
-    ) {
+    public MessageResponse analyzeImage(MultipartFile image, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
-        // 2. Validate image
         if (image == null || image.isEmpty()) {
             throw new IllegalArgumentException("Image is required");
         }
@@ -85,14 +76,12 @@ AIServiceImpl implements AIService {
             throw new IllegalArgumentException("Only image files are allowed");
         }
 
-        // 5. Save user message
         Message userMessage = new Message();
         userMessage.setAI_conv(null);
         userMessage.setRole(Role.USER);
-        userMessage.setContent("[IMAGE] ");
+        userMessage.setContent("[IMAGE]");
         messageRepository.save(userMessage);
 
-        // 6. Call pycont service via HTTP
         String reply;
         try {
             String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
@@ -100,8 +89,7 @@ AIServiceImpl implements AIService {
             Map<String, String> body = new HashMap<>();
             body.put("image", base64Image);
 
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Map> response = restTemplate.postForEntity(
+            ResponseEntity<Map> response = restTemplate.postForEntity(  // ✅ use injected bean
                     pydocUrl + "/analyze",
                     body,
                     Map.class
@@ -109,7 +97,7 @@ AIServiceImpl implements AIService {
 
             Map<String, Object> result = response.getBody();
             if (result == null) {
-                throw new IllegalArgumentException("Empty response from pycont service");
+                throw new IllegalArgumentException("Empty response from AI service");
             }
 
             if (Boolean.FALSE.equals(result.get("valid"))) {
@@ -135,6 +123,7 @@ AIServiceImpl implements AIService {
 
         return new MessageResponse(reply, null, LocalDateTime.now());
     }
+
     private AI_Conversations resolveConversation(Long conversationId, String seedMessage, User user) {
         if (conversationId != null) {
             return conversationRepository.findByIdAndUser(conversationId, user)
@@ -149,9 +138,7 @@ AIServiceImpl implements AIService {
 
     private String buildTitle(String message) {
         String trimmed = message == null ? "" : message.trim();
-        if (trimmed.isEmpty()) {
-            return "New chat";
-        }
+        if (trimmed.isEmpty()) return "New chat";
         int max = 40;
         return trimmed.length() <= max ? trimmed : trimmed.substring(0, max);
     }
