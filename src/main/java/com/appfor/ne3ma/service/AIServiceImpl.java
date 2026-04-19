@@ -17,10 +17,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 
@@ -37,7 +41,8 @@ AIServiceImpl implements AIService {
     private static final String PYTHON_PATH ="python3";
     private static final String SCRIPT_PATH = new File("ai/predict.py").getAbsolutePath();
     private final ObjectMapper mapper = new ObjectMapper();
-
+    @Value("${pycont.url}")
+    private String pydocUrl;
     @Override
     public MessageResponse processMessage(ChatRequest request, String username) {
         User user = userRepository.findByUsername(username)
@@ -68,20 +73,6 @@ AIServiceImpl implements AIService {
             MultipartFile image,
             String username
     ) {
-        try {
-
-            byte[] bytes = image.getBytes();
-            String encoded = Base64.getEncoder().encodeToString(bytes);
-            // This will print a HUGE string in your Railway logs
-            System.out.println("DEBUG_IMAGE_BEGIN");
-            System.out.println("data:" + image.getContentType() + ";base64," + encoded);
-            System.out.println("DEBUG_IMAGE_END");
-        }
-        catch (Exception e) {
-            throw new IllegalArgumentException(
-                    "Failed to convert image ");}
-
-
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
@@ -90,7 +81,6 @@ AIServiceImpl implements AIService {
             throw new IllegalArgumentException("Image is required");
         }
         String contentType = image.getContentType();
-        System.out.println(contentType);
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("Only image files are allowed");
         }
@@ -102,83 +92,28 @@ AIServiceImpl implements AIService {
         userMessage.setContent("[IMAGE] ");
         messageRepository.save(userMessage);
 
-        // 6. Call predict.py
+        // 6. Call pycont service via HTTP
         String reply;
         try {
-            // Write uploaded image to a temp file
-            File scriptFile = new File(SCRIPT_PATH).getAbsoluteFile();
-            File tempImage  = File.createTempFile("upload_", "_" + image.getOriginalFilename());
-            image.transferTo(tempImage);
+            String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
 
-            System.out.println("Working dir : " + System.getProperty("user.dir"));
-            System.out.println("Script path : " + scriptFile.getAbsolutePath());
-            System.out.println("Image  path : " + tempImage.getAbsolutePath());
+            Map<String, String> body = new HashMap<>();
+            body.put("image", base64Image);
 
-            ProcessBuilder pb = new ProcessBuilder(
-                    PYTHON_PATH,
-                    scriptFile.getAbsolutePath(),
-                    tempImage.getAbsolutePath()
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    pydocUrl + "/analyze",
+                    body,
+                    Map.class
             );
 
-
-            Process process = pb.start();
-
-            // ✅ Drain stderr in background so process never blocks
-            StringBuilder errors = new StringBuilder();
-            Thread errThread = new Thread(() -> {
-                try (BufferedReader err = new BufferedReader(
-                        new InputStreamReader(process.getErrorStream()))) {
-                    String l;
-                    while ((l = err.readLine()) != null) {
-                        errors.append(l).append("\n");
-                    }
-                } catch (IOException ignored) {}
-            });
-            errThread.start();
-
-            // ✅ Read stdout — last non-empty line is always the JSON
-            String lastLine = "";
-            String line;
-            int lineNum = 0;
-            try (BufferedReader stdOut = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()))) {
-                while ((line = stdOut.readLine()) != null) {
-                    lineNum++;
-                    System.out.println("Python line [" + lineNum + "]: " + line);
-                    if (!line.trim().isEmpty()) {
-                        lastLine = line.trim();
-                    }
-                }
+            Map<String, Object> result = response.getBody();
+            if (result == null) {
+                throw new IllegalArgumentException("Empty response from pycont service");
             }
 
-            process.waitFor();
-            errThread.join();
-            tempImage.delete();
-
-            System.out.println("=== stderr   : " + errors);
-            System.out.println("=== last line: " + lastLine);
-            System.out.println("=== exit code: " + process.exitValue());
-
-            if (lastLine.isBlank()) {
-                throw new IllegalArgumentException(
-                        "Python returned no output. Stderr: " + errors
-                );
-            }
-
-            // ✅ Parse only the last line as JSON
-            Map<String, Object> result;
-            try {
-                result = mapper.readValue(lastLine, Map.class);
-            } catch (Exception e) {
-                throw new IllegalArgumentException(
-                        "Failed to parse JSON.\nLast line: " + lastLine +
-                                "\nStderr: " + errors
-                );
-            }
-
-            // 7. Build reply from prediction result
             if (Boolean.FALSE.equals(result.get("valid"))) {
-                reply = (String) result.get("message"); // "Not a leaf"
+                reply = (String) result.get("message");
             } else {
                 reply = String.format(
                         "Disease: %s | Confidence: %s%% | Top 3: %s",
@@ -189,12 +124,8 @@ AIServiceImpl implements AIService {
             }
 
         } catch (IOException ex) {
-            throw new IllegalArgumentException("Failed to run Python script: " + ex.getMessage(), ex);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new IllegalArgumentException("Python process was interrupted", ex);
+            throw new IllegalArgumentException("Failed to read image: " + ex.getMessage(), ex);
         }
-
 
         Message aiMessage = new Message();
         aiMessage.setAI_conv(null);
@@ -204,7 +135,6 @@ AIServiceImpl implements AIService {
 
         return new MessageResponse(reply, null, LocalDateTime.now());
     }
-
     private AI_Conversations resolveConversation(Long conversationId, String seedMessage, User user) {
         if (conversationId != null) {
             return conversationRepository.findByIdAndUser(conversationId, user)
