@@ -21,7 +21,6 @@ public class WeatherService {
                         .queryParam("latitude",       lat)
                         .queryParam("longitude",      lon)
                         .queryParam("current_weather", true)
-                        .queryParam("hourly",         "temperature_2m,relative_humidity_2m")
                         .queryParam("daily",          "temperature_2m_max,temperature_2m_min")
                         .queryParam("timezone",       "auto")
                         .build())
