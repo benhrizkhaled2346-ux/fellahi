@@ -21,6 +21,8 @@ public class WeatherService {
                         .queryParam("latitude", lat)
                         .queryParam("longitude", lon)
                         .queryParam("current_weather", true)
+                        .queryParam("hourly", "relative_humidity_2m,temperature_2m")
+                        .queryParam("daily", "temperature_2m_max,temperature_2m_min")
                         .build())
                 .retrieve()
                 .bodyToMono(String.class)

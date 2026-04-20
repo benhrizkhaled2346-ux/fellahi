@@ -19,7 +19,8 @@ public class UserPrincipal implements UserDetails {
     public Long getId() {
         return user.getId();
     }
-
+    public  String getFullname(){return user.getFullname();}
+    public String getPhone(){return user.getPhone();}
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();
@@ -34,6 +35,7 @@ public class UserPrincipal implements UserDetails {
     public String getUsername() {
         return user.getUsername();
     }
+
 
     @Override
     public boolean isAccountNonExpired() {

@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
         return new LoginResponse(
                 token,
                 saved.getUsername()
-                ,refreshToken.getToken()
+                ,refreshToken.getToken(),saved.getPhone(), saved.getFullname()
         );
 
 
@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
         return new LoginResponse(
                 token,
                 userDetails.getUsername()
-                ,refreshToken.getToken()
+                ,refreshToken.getToken(),userDetails.getPhone(), userDetails.getFullname()
         );
     }
 
