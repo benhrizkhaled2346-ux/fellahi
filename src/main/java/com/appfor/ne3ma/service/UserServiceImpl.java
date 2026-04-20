@@ -53,10 +53,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        String identity = request.resolveIdentity();
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        identity,
+                        request.getEmail(),
                         request.getPassword()
                 )
         );
