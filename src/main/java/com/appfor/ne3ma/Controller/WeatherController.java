@@ -1,6 +1,7 @@
 package com.appfor.ne3ma.Controller;
 
 import com.appfor.ne3ma.dto.WeatherRequest;
+import com.appfor.ne3ma.dto.WeatherResponse;
 import com.appfor.ne3ma.service.WeatherService;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +16,7 @@ public class WeatherController {
     }
 
     @PostMapping
-    public String getWeather(@RequestBody WeatherRequest weath) {
+    public WeatherResponse getWeather(@RequestBody WeatherRequest weath) {
         return weatherService.getWeather(weath.getLat(), weath.getLon());
     }
 }
