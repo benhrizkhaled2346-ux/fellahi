@@ -27,7 +27,6 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
     private final InvalidTokenRepository invalidtokenrepo;
     private final AuthService authService;
-    private final MyuserdetailsServer userDetailsService;
     @Override
     public LoginResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -54,28 +53,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByIdentity(
-                request.getUserIdentity(),
-                request.getType()
-        );
-
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        userDetails.getUsername(),
+                        request.getEmail(),
                         request.getPassword()
                 )
         );
 
-        UserPrincipal authenticatedUser =
+        UserPrincipal userDetails =
                 (UserPrincipal) authentication.getPrincipal();
 
-        String token = jwtservice.generateToken(authenticatedUser);
-        RefreshToken refreshToken =jwtservice.generateRefreshToken(authenticatedUser);
+        String token = jwtservice.generateToken(userDetails);
+        RefreshToken refreshToken =jwtservice.generateRefreshToken(userDetails);
 
         return new LoginResponse(
                 token,
-                authenticatedUser.getUsername()
-                ,refreshToken.getToken(),authenticatedUser.getPhone(), authenticatedUser.getFullname()
+                userDetails.getUsername()
+                ,refreshToken.getToken(),userDetails.getPhone(), userDetails.getFullname()
         );
     }
 
