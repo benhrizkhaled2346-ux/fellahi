@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.Pattern;
 
-import java.util.Map;
-
 
 @Data
 @NoArgsConstructor
@@ -27,6 +25,4 @@ public class RegisterRequest {
     private String password;
     @NotBlank
     private String phone;
-
-    private Map<String, String> answers;
 }

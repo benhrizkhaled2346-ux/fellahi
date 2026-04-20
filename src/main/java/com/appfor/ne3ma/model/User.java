@@ -9,8 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 
 @Entity
@@ -38,11 +36,6 @@ public class User {
     @Column(nullable = false)
     private String phone;
 
-    @ElementCollection
-    @CollectionTable(name = "user_answers", joinColumns = @JoinColumn(name = "user_id"))
-    @MapKeyColumn(name = "answer_key")
-    @Column(name = "answer_value")
-    private Map<String, String> answers = new HashMap<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
