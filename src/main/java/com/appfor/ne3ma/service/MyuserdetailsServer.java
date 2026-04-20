@@ -16,11 +16,11 @@ public class MyuserdetailsServer implements UserDetailsService {
 
     private final UserRepository userRepository;
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        com.appfor.ne3ma.model.User user =userRepository.findByEmail(email)
-                .orElseThrow(()-> new UsernameNotFoundException("user not found"));
+    public UserDetails loadUserByUsername(String identity) throws UsernameNotFoundException {
+        String normalizedIdentity = identity == null ? "" : identity.trim();
+        com.appfor.ne3ma.model.User user = userRepository.findByEmail(normalizedIdentity)
+                .or(() -> userRepository.findByPhone(normalizedIdentity))
+                .orElseThrow(() -> new UsernameNotFoundException("user not found"));
         return new com.appfor.ne3ma.security.UserPrincipal(user);
-
-
     }
 }
