@@ -14,8 +14,8 @@ public class WeatherController {
     }
 
     @GetMapping
-    public String getWeather(@RequestParam double lat,
-                             @RequestParam double lon) {
+    public String getWeather(@RequestBody double lat,
+                             @RequestBody double lon) {
         return weatherService.getWeather(lat, lon);
     }
 }
