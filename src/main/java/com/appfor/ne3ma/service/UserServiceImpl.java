@@ -8,6 +8,7 @@ import com.appfor.ne3ma.repository.InvalidTokenRepository;
 import com.appfor.ne3ma.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,7 @@ public class UserServiceImpl implements UserService {
         user.setFullname(request.getFullname());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(request.getPhone());
+        user.setAnswers(request.getAnswers() == null ? new HashMap<>() : new HashMap<>(request.getAnswers()));
         User saved = userRepository.save(user);
         UserPrincipal userPrincipal = new UserPrincipal(saved);
         String token = jwtservice.generateToken(userPrincipal);
@@ -150,6 +152,7 @@ public class UserServiceImpl implements UserService {
                 user.getId(),
                 user.getUsername(),
                 user.getFullname(),
+                user.getAnswers(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
