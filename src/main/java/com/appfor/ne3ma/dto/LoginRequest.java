@@ -1,6 +1,5 @@
 package com.appfor.ne3ma.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,8 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginRequest {
     @NotBlank
-    @Email
-    private String email;
+    private String userIdentity;
+
+    private String type;
 
     @NotBlank
     private String password;
