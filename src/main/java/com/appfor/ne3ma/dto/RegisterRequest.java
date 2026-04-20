@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.Pattern;
 
 
 @Data
@@ -14,8 +13,8 @@ import jakarta.validation.constraints.Pattern;
 @AllArgsConstructor
 public class RegisterRequest {
     @NotBlank
-    @Size(min = 3, max = 50)
-    private String username;
+    @Email
+    private String email;
 
     @NotBlank
     private String fullname;

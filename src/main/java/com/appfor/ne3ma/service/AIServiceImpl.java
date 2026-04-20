@@ -39,9 +39,9 @@ public class AIServiceImpl implements AIService {
     private String pydocUrl;
 
     @Override
-    public MessageResponse processMessage(ChatRequest request, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+    public MessageResponse processMessage(ChatRequest request, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
         AI_Conversations conversation =
                 resolveConversation(request.getConversationId(), request.getMessage(), user);
@@ -52,7 +52,7 @@ public class AIServiceImpl implements AIService {
         userMessage.setContent(request.getMessage());
         messageRepository.save(userMessage);
 
-        String reply = aiProvider.generateReply(request.getMessage(), username);
+        String reply = aiProvider.generateReply(request.getMessage(), email);
 
         Message aiMessage = new Message();
         aiMessage.setAI_conv(conversation);
@@ -64,9 +64,9 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
-    public MessageResponse analyzeImage(MultipartFile image, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+    public MessageResponse analyzeImage(MultipartFile image, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
         if (image == null || image.isEmpty()) {
             throw new IllegalArgumentException("Image is required");

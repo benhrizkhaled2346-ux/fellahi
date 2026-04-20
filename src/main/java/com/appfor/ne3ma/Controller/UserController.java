@@ -29,7 +29,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        System.out.println(request.getUsername());
+        System.out.println(request.getEmail());
         return ResponseEntity.ok(userService.login(request));
     }
     @GetMapping("/login")
@@ -51,17 +51,17 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(@RequestParam String username) {
-        return ResponseEntity.ok(userService.getCurrentUser(username));
+    public ResponseEntity<UserResponse> getCurrentUser(@RequestParam String email) {
+        return ResponseEntity.ok(userService.getCurrentUser(email));
     }
 
 //    @PutMapping("/me")
 //    public ResponseEntity<UserResponse> updateCurrentUser(
 //            @Valid @RequestBody UpdateUserRequest request) {
-//        if (request.getUsername() == null || request.getUsername().isBlank()) {
+//        if (request.getEmail() == null || request.getEmail().isBlank()) {
 //            return ResponseEntity.badRequest().build();
 //        }
-//        return ResponseEntity.ok(userService.updateCurrentUser(request.getUsername(), request));
+//        return ResponseEntity.ok(userService.updateCurrentUser(request.getEmail(), request));
 //    }
 
     @GetMapping

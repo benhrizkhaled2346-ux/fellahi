@@ -10,9 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateUserRequest {
-    @Size(min = 3, max = 50)
-    private String username;
-
     @Email
     private String email;
 

@@ -1,5 +1,6 @@
 package com.appfor.ne3ma.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,5 +14,6 @@ public class ChatRequest {
     private String message;
     private Long conversationId;
     @NotBlank
-    private String username;
+    @Email
+    private String email;
 }

@@ -5,10 +5,10 @@ import com.appfor.ne3ma.dto.MessageResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface AIService {
-    MessageResponse processMessage(ChatRequest request, String username);
+    MessageResponse processMessage(ChatRequest request, String email);
 
     MessageResponse analyzeImage(
             MultipartFile image,
-            String username
+            String email
     );
 }

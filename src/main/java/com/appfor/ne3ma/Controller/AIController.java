@@ -21,7 +21,7 @@ public class AIController {
     public ResponseEntity<MessageResponse> chat(
             @Valid @RequestBody ChatRequest request) {
 
-        MessageResponse response = aiService.processMessage(request, request.getUsername());
+        MessageResponse response = aiService.processMessage(request, request.getEmail());
 
         return ResponseEntity.ok(response);
     }
@@ -29,10 +29,10 @@ public class AIController {
     @PostMapping(value = "/analyze-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageResponse> analyzeImage(
             @RequestParam("photo") MultipartFile image,
-            @RequestParam("username") String username
+            @RequestParam("email") String email
 
     ) {
-        MessageResponse response = aiService.analyzeImage(image, username);
+        MessageResponse response = aiService.analyzeImage(image, email);
         return ResponseEntity.ok(response);
     }
 }

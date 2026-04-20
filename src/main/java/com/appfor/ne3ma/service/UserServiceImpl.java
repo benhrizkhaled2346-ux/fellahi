@@ -29,15 +29,12 @@ public class UserServiceImpl implements UserService {
     private final AuthService authService;
     @Override
     public LoginResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
         }
-//        if (userRepository.existsByEmail(request.getEmail())) {
-//            throw new IllegalArgumentException("Email already exists");
-//        }
 
         User user = new User();
-        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
         user.setFullname(request.getFullname());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(request.getPhone());
@@ -47,7 +44,7 @@ public class UserServiceImpl implements UserService {
         RefreshToken refreshToken =jwtservice.generateRefreshToken(userPrincipal);
         return new LoginResponse(
                 token,
-                saved.getUsername()
+                saved.getEmail()
                 ,refreshToken.getToken(),saved.getPhone(), saved.getFullname()
         );
 
@@ -58,7 +55,7 @@ public class UserServiceImpl implements UserService {
     public LoginResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
+                        request.getEmail(),
                         request.getPassword()
                 )
         );
@@ -77,31 +74,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getCurrentUser(String username) {
-        User user = userRepository.findByUsername(username)
+    public UserResponse getCurrentUser(String email) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return toResponse(user);
     }
 
 //    @Override
-//    public UserResponse updateCurrentUser(String username, UpdateUserRequest request) {
-//        User user = userRepository.findByUsername(username)
+//    public UserResponse updateCurrentUser(String email, UpdateUserRequest request) {
+//        User user = userRepository.findByEmail(email)
 //                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 //
-//        if (request.getUsername() != null && !request.getUsername().isBlank()) {
-//            if (!request.getUsername().equals(user.getUsername())
-//                    && userRepository.existsByUsername(request.getUsername())) {
-//                throw new IllegalArgumentException("Username already exists");
-//            }
-//            user.setUsername(request.getUsername());
-//        }
-//
 //        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-//            if (!request.getEmail().equals(user.getFullname())
+//            if (!request.getEmail().equals(user.getEmail())
 //                    && userRepository.existsByEmail(request.getEmail())) {
 //                throw new IllegalArgumentException("Email already exists");
 //            }
-//            user.setFullname(request.getEmail());
+//            user.setEmail(request.getEmail());
 //        }
 //
 //        if (request.getPassword() != null && !request.getPassword().isBlank()) {
@@ -148,7 +137,7 @@ public class UserServiceImpl implements UserService {
     private UserResponse toResponse(User user) {
         return new UserResponse(
                 user.getId(),
-                user.getUsername(),
+                user.getEmail(),
                 user.getFullname(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()

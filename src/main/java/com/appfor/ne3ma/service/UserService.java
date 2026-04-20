@@ -9,9 +9,9 @@ public interface UserService {
 
     LoginResponse login(LoginRequest request);
 
-    UserResponse getCurrentUser(String username);
+    UserResponse getCurrentUser(String email);
 
-//    UserResponse updateCurrentUser(String username, UpdateUserRequest request);
+//    UserResponse updateCurrentUser(String email, UpdateUserRequest request);
 
     List<UserResponse> listUsers();
 

@@ -60,7 +60,7 @@ public class JWTService {
                 .compact();
     }
     public RefreshToken generateRefreshToken(UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
+        User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found: " + userDetails.getUsername()));
 
@@ -83,7 +83,7 @@ public class JWTService {
     }
 
 
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
     private <T> T extractClaim(String token, Function<Claims, T> resolver) {
@@ -104,8 +104,8 @@ public class JWTService {
         return Keys.hmacShaKeyFor(secretjwt.getBytes(StandardCharsets.UTF_8));
     }
     public boolean validatetoken(String token, UserDetails userDetails) {
-        final String userName = extractUsername(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        final String email = extractEmail(token);
+        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());

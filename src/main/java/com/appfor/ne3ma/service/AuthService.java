@@ -36,6 +36,6 @@ public class AuthService {
         User user = refreshToken.getUser();
 
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         return jwtService.generateToken(userDetails);
     }}
