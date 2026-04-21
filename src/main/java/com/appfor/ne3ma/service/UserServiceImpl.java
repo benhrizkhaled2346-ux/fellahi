@@ -62,11 +62,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponse login(LoginRequest request) {
          if (PHONE_PATTERN.matcher(request.getUserid()).matches()) {
-             String email = userRepository.findByPhone(request.getUserid())
-                     .orElseThrow(() -> new IllegalArgumentException("user not found by this phone"));
-
-             System.out.println(email);
-             request.setUserid(email);
+            request.setUserid(userRepository.findByPhone(request.getUserid())
+                     .orElseThrow(() -> new IllegalArgumentException("user not found by this phone")));
          }
 
 
