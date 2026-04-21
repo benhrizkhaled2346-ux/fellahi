@@ -65,6 +65,7 @@ public class UserServiceImpl implements UserService {
              String email = userRepository.findByPhone(request.getUserid())
                      .orElseThrow(() -> new IllegalArgumentException("user not found by this phone"));
 
+             System.out.println(email);
              request.setUserid(email);
          }
 
