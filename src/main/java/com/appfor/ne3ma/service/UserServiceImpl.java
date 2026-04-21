@@ -9,6 +9,8 @@ import com.appfor.ne3ma.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.appfor.ne3ma.security.UserPrincipal;
@@ -27,6 +29,11 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
     private final InvalidTokenRepository invalidtokenrepo;
     private final AuthService authService;
+    private static final Pattern EMAIL_PATTERN =
+            Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+
+    private static final Pattern PHONE_PATTERN =
+            Pattern.compile("^\\+?[0-9]{8,15}$");
     @Override
     public LoginResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -51,11 +58,26 @@ public class UserServiceImpl implements UserService {
 
     }
 
+
     @Override
     public LoginResponse login(LoginRequest request) {
+         if (PHONE_PATTERN.matcher(request.getUserid()).matches()) {
+             String email = userRepository.findByPhone(request.getUserid())
+                     .orElseThrow(() -> new IllegalArgumentException("user not found by this phone"));
+
+             request.setUserid(email);
+         }
+
+
+            else if (!(EMAIL_PATTERN.matcher(request.getUserid()).matches())){
+             throw new IllegalArgumentException("UserId must be a valid email or phone number");
+
+        }
+
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
+                        request.getUserid(),
                         request.getPassword()
                 )
         );
