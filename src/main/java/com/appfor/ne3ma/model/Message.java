@@ -27,8 +27,9 @@ public class Message {
     @Column
     private Role role;
 
-    @Column
-    private  String content;
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String content;
 
     @Column
     @CreationTimestamp
