@@ -134,7 +134,7 @@ public class AIServiceImpl implements AIService {
     }
 
     private AI_Conversations resolveConversation(Long conversationId, String seedMessage, User user) {
-        if (conversationId != null) {
+        if (conversationId != null && conversationId > 0) {
             return conversationRepository.findByIdAndUser(conversationId, user)
                     .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
         }
