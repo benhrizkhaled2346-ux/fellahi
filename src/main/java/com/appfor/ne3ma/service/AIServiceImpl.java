@@ -27,6 +27,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+
 @Service
 @RequiredArgsConstructor
 public class AIServiceImpl implements AIService {
@@ -39,6 +40,7 @@ public class AIServiceImpl implements AIService {
 
     @Value("${pycont.url}")
     private String pydocUrl;
+
 
     @Override
     public MessageResponse processMessage(ChatRequest request, String email) {
