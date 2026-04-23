@@ -3,6 +3,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.*;
 
@@ -20,7 +22,8 @@ public class Message {
 
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "AI_conv_id")
+    @JoinColumn(name = "AI_conv_id", foreignKey = @ForeignKey(name = "fk_messages_ai_conversation"))
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private AI_Conversations AI_conv;
 
     @Enumerated(EnumType.STRING)
