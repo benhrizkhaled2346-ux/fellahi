@@ -87,7 +87,7 @@ public class GoogleAIStudioProvider implements AIProvider {
     }
 
     private String callGenerateContent(String modelName, String prompt) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+        String url = "https://generativelanguage.googleapis.com/v1/models/"
                 + modelName
                 + ":generateContent?key="
                 + apiKey;
