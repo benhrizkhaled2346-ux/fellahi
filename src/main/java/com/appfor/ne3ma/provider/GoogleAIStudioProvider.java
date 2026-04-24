@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -49,20 +48,8 @@ public class GoogleAIStudioProvider implements AIProvider {
         String configuredModel = normalizeModelName(model);
         try {
             return callGenerateContent(configuredModel, prompt);
-        } catch (HttpClientErrorException.NotFound notFound) {
-            String discoveredModel = discoverSupportedGenerateContentModel();
-            if (discoveredModel == null || discoveredModel.equalsIgnoreCase(configuredModel)) {
-                return "Configured model not found: " + configuredModel
-                        + ". Set google.ai.model to a valid model name from ListModels.";
-            }
-            try {
-                return callGenerateContent(discoveredModel, prompt);
-            } catch (RestClientException retryEx) {
-                return "Configured model '" + configuredModel + "' not found; retry with discovered model '"
-                        + discoveredModel + "' failed: " + retryEx.getMessage();
-            }
         } catch (RestClientException ex) {
-            return "AI provider request failed: " + ex.getMessage();
+            return "AI provider request failed for model '" + configuredModel + "': " + ex.getMessage();
         }
     }
 
@@ -122,60 +109,6 @@ public class GoogleAIStudioProvider implements AIProvider {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
         ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
         return extractText(response.getBody());
-    }
-
-    @SuppressWarnings("unchecked")
-    private String discoverSupportedGenerateContentModel() {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models?key=" + apiKey;
-        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-        Map body = response.getBody();
-        if (body == null) {
-            return null;
-        }
-
-        Object modelsObj = body.get("models");
-        if (!(modelsObj instanceof List<?> models) || models.isEmpty()) {
-            return null;
-        }
-
-        List<String> candidates = new java.util.ArrayList<>();
-        for (Object modelObj : models) {
-            if (!(modelObj instanceof Map<?, ?> modelMap)) {
-                continue;
-            }
-            Object methodsObj = modelMap.get("supportedGenerationMethods");
-            if (!(methodsObj instanceof List<?> methods)) {
-                continue;
-            }
-            boolean supportsGenerateContent = methods.stream()
-                    .map(String::valueOf)
-                    .anyMatch("generateContent"::equals);
-            if (!supportsGenerateContent) {
-                continue;
-            }
-            String name = Objects.toString(modelMap.get("name"), "");
-            String normalized = normalizeModelName(name);
-            if (!normalized.isBlank()) {
-                candidates.add(normalized);
-            }
-        }
-
-        if (candidates.isEmpty()) {
-            return null;
-        }
-        for (String preferred : List.of("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash")) {
-            for (String candidate : candidates) {
-                if (candidate.equalsIgnoreCase(preferred)) {
-                    return candidate;
-                }
-            }
-        }
-        for (String candidate : candidates) {
-            if (candidate.toLowerCase().contains("flash")) {
-                return candidate;
-            }
-        }
-        return candidates.get(0);
     }
 
     private String normalizeModelName(String rawModelName) {
