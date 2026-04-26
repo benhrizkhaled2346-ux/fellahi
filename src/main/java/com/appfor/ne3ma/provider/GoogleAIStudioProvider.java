@@ -64,7 +64,7 @@ public class GoogleAIStudioProvider implements AIProvider {
                 "farm", "farming", "agri", "agriculture", "crop", "soil", "irrigation", "fertilizer",
                 "plant", "tree", "leaf", "flower", "seed", "garden", "forest", "nature",
                 "animal", "livestock", "cow", "goat", "chicken", "poultry", "fish", "bee",
-                "climate", "weather", "rain", "drought", "environment", "sustainab"
+                "climate", "weather", "rain", "drought", "environment", "sustainab","Disease","olive","palm","tree"
         };
 
         for (String keyword : keywords) {
