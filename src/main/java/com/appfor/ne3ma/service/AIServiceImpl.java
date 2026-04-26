@@ -1,6 +1,7 @@
 package com.appfor.ne3ma.service;
 
 import com.appfor.ne3ma.dto.ChatRequest;
+import com.appfor.ne3ma.dto.ImageResponse;
 import com.appfor.ne3ma.dto.MessageResponse;
 import com.appfor.ne3ma.model.AI_Conversations;
 import com.appfor.ne3ma.model.Message;
@@ -68,7 +69,7 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
-    public MessageResponse analyzeImage(MultipartFile image, String email) {
+    public ImageResponse analyzeImage(MultipartFile image, String email) {
         userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
@@ -130,7 +131,8 @@ public class AIServiceImpl implements AIService {
         aiMessage.setContent(reply);
         messageRepository.save(aiMessage);
 
-        return new MessageResponse(reply, null, LocalDateTime.now());
+        String aireply = aiProvider.generateReply(reply, email);
+        return new ImageResponse(reply, null, LocalDateTime.now(),aireply);
     }
 
     private AI_Conversations resolveConversation(Long conversationId, String seedMessage, User user) {

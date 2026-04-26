@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<MessageResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
         MessageResponse response = new MessageResponse(
-                "Image is too large. Maximum allowed size is 10MB.",
+                "Image is too large. Maximum allowed size is 20MB.",
                 null,
                 LocalDateTime.now()
         );

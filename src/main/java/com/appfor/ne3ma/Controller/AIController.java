@@ -1,5 +1,6 @@
 package com.appfor.ne3ma.Controller;
 
+import com.appfor.ne3ma.dto.ImageResponse;
 import lombok.RequiredArgsConstructor;
 import com.appfor.ne3ma.dto.ChatRequest;
 import com.appfor.ne3ma.dto.MessageResponse;
@@ -27,12 +28,12 @@ public class AIController {
     }
 
     @PostMapping(value = "/analyze-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MessageResponse> analyzeImage(
+    public ResponseEntity<ImageResponse> analyzeImage(
             @RequestParam("photo") MultipartFile image,
             @RequestParam("email") String email
 
     ) {
-        MessageResponse response = aiService.analyzeImage(image, email);
+        ImageResponse response = aiService.analyzeImage(image, email);
         return ResponseEntity.ok(response);
     }
 }
