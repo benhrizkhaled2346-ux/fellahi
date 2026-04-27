@@ -48,11 +48,15 @@ public class UserServiceImpl implements UserService {
         User saved = userRepository.save(user);
         UserPrincipal userPrincipal = new UserPrincipal(saved);
         String token = jwtservice.generateToken(userPrincipal);
-        RefreshToken refreshToken =jwtservice.generateRefreshToken(userPrincipal);
+        String refreshTokenValue = null;
+        if (request.isRememberMe()) {
+            RefreshToken refreshToken = jwtservice.generateRefreshToken(userPrincipal);
+            refreshTokenValue = refreshToken.getToken();
+        }
         return new LoginResponse(
                 token,
                 saved.getEmail()
-                ,refreshToken.getToken(),saved.getPhone(), saved.getFullname()
+                ,refreshTokenValue,saved.getPhone(), saved.getFullname()
         );
 
 
@@ -61,13 +65,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-         if (PHONE_PATTERN.matcher(request.getUserid()).matches()) {
+        String originalUserId = request.getUserid();
+        if (PHONE_PATTERN.matcher(originalUserId).matches()) {
             request.setUserid(userRepository.findByPhone(request.getUserid())
                      .orElseThrow(() -> new IllegalArgumentException("user not found by this phone")));
          }
 
 
-            else if (!(EMAIL_PATTERN.matcher(request.getUserid()).matches())){
+            else if (!(EMAIL_PATTERN.matcher(originalUserId).matches())){
              throw new IllegalArgumentException("UserId must be a valid email or phone number");
 
         }
@@ -84,12 +89,19 @@ public class UserServiceImpl implements UserService {
                 (UserPrincipal) authentication.getPrincipal();
 
         String token = jwtservice.generateToken(userDetails);
-        RefreshToken refreshToken =jwtservice.generateRefreshToken(userDetails);
+        String refreshTokenValue = null;
+        if (request.isRememberMe()) {
+            RefreshToken refreshToken = jwtservice.generateRefreshToken(userDetails);
+            refreshTokenValue = refreshToken.getToken();
+        } else {
+            userRepository.findByEmail(userDetails.getUsername())
+                    .ifPresent(authService::deleteRefreshToken);
+        }
 
         return new LoginResponse(
                 token,
                 userDetails.getUsername()
-                ,refreshToken.getToken(),userDetails.getPhone(), userDetails.getFullname()
+                ,refreshTokenValue,userDetails.getPhone(), userDetails.getFullname()
         );
     }
 

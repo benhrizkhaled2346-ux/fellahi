@@ -3,12 +3,9 @@ package com.appfor.ne3ma.service;
 import com.appfor.ne3ma.model.RefreshToken;
 import com.appfor.ne3ma.model.User;
 import com.appfor.ne3ma.repository.RefreshTokenRepository;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
-import com.appfor.ne3ma.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
@@ -38,4 +35,9 @@ public class AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         return jwtService.generateToken(userDetails);
-    }}
+    }
+
+    public void deleteRefreshToken(User user) {
+        refreshTokenRepository.deleteByUser(user);
+    }
+}

@@ -24,4 +24,6 @@ public class RegisterRequest {
     private String password;
     @NotBlank
     private String phone;
+
+    private boolean rememberMe;
 }
