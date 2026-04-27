@@ -3,7 +3,7 @@ package com.appfor.ne3ma.service;
 import com.appfor.ne3ma.model.RefreshToken;
 import com.appfor.ne3ma.model.User;
 import com.appfor.ne3ma.repository.RefreshTokenRepository;
-import java.util.Optional;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UserDetails;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +37,7 @@ public class AuthService {
         return jwtService.generateToken(userDetails);
     }
 
+    @Transactional
     public void deleteRefreshToken(User user) {
         refreshTokenRepository.deleteByUser(user);
     }
