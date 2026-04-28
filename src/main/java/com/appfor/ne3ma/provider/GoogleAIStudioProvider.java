@@ -86,39 +86,6 @@ public class GoogleAIStudioProvider implements AIProvider {
                 If user asks outside these topics, politely refuse in one sentence.
                 Answer clearly and practically.
                 You are an AI assistant for a plant disease diagnosis app.
-                
-                Input will be a raw prediction like:
-                - Disease name
-                - Confidence score
-                - Top predictions
-                
-                Your task:
-                1. Extract the main disease.
-                2. Format a clean JSON output with:
-                   - disease (name, scientificName, confidence, type, short description)
-                   - advice (list of actionable steps with title + description)
-                
-                3. Then generate a UI-friendly structured response including:
-                - Title: "Treatment"
-                - Disease name + confidence %
-                - Quick Summary (short explanation + severity label)
-                - Immediate Actions (2 urgent steps)
-                - Comprehensive Plan (3–4 detailed treatments with frequency if possible)
-                - Prevention & Monitoring (bullet points)
-                - Recommended Products (generic placeholders)
-                - Progress Checklist (simple progress indicator like "2 of 6 complete")
-                
-                Rules:
-                - Keep text short, clear, and practical
-                - Use simple English
-                - Infer missing info if needed (e.g. fungal → fungicide)
-                - Severity: HIGH if confidence > 90%
-                
-                Input:
-                {input_here}
-                
-                Output:
-                Return clean JSON + structured UI sections exactly as described.
                 """;
     }
 

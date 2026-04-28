@@ -131,7 +131,38 @@ public class AIServiceImpl implements AIService {
         aiMessage.setContent(reply);
         messageRepository.save(aiMessage);
 
-        String aireply = aiProvider.generateReply(reply, email);
+        String aireply = aiProvider.generateReply(" Input will be a raw prediction like:\n" +
+                "                - Disease name\n" +
+                "                - Confidence score\n" +
+                "                - Top predictions\n" +
+                "                \n" +
+                "                Your task:\n" +
+                "                1. Extract the main disease.\n" +
+                "                2. Format a clean JSON output with:\n" +
+                "                   - disease (name, scientificName, confidence, type, short description)\n" +
+                "                   - advice (list of actionable steps with title + description)\n" +
+                "                \n" +
+                "                3. Then generate a UI-friendly structured response including:\n" +
+                "                - Title: \"Treatment\"\n" +
+                "                - Disease name + confidence %\n" +
+                "                - Quick Summary (short explanation + severity label)\n" +
+                "                - Immediate Actions (2 urgent steps)\n" +
+                "                - Comprehensive Plan (3–4 detailed treatments with frequency if possible)\n" +
+                "                - Prevention & Monitoring (bullet points)\n" +
+                "                - Recommended Products (generic placeholders)\n" +
+                "                - Progress Checklist (simple progress indicator like \"2 of 6 complete\")\n" +
+                "                \n" +
+                "                Rules:\n" +
+                "                - Keep text short, clear, and practical\n" +
+                "                - Use simple English\n" +
+                "                - Infer missing info if needed (e.g. fungal → fungicide)\n" +
+                "                - Severity: HIGH if confidence > 90%\n" +
+                "                \n" +
+                "                Input:\n" +
+                "                {input_here}\n" +
+                "                \n" +
+                "                Output:\n" +
+                "                Return clean JSON + structured UI sections exactly as described.\n"+reply, email);
         return new ImageResponse(reply, null, LocalDateTime.now(),aireply);
     }
 
