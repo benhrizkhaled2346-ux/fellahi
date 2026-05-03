@@ -12,5 +12,5 @@ public class GoogleLoginRequest {
     @NotBlank
     private String idToken;
 
-    private boolean rememberMe;
+    private boolean rememberMe = true;
 }
