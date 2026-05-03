@@ -2,7 +2,6 @@ package com.appfor.ne3ma.Controller;
 
 import com.appfor.ne3ma.dto.*;
 import com.appfor.ne3ma.service.AuthService;
-import com.appfor.ne3ma.service.JWTService;
 import com.appfor.ne3ma.service.UserService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private  final AuthService AuthService;
+    private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -31,6 +30,12 @@ public class UserController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(userService.login(request));
     }
+
+    @PostMapping("/google")
+    public ResponseEntity<LoginResponse> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        return ResponseEntity.ok(authService.authenticateWithGoogle(request));
+    }
+
     @GetMapping("/login")
     public String login() {
         return "login";
@@ -76,7 +81,7 @@ public class UserController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken").trim();
-        String newAccessToken = AuthService.refreshAccessToken(refreshToken);
+        String newAccessToken = authService.refreshAccessToken(refreshToken);
         return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 
