@@ -3,6 +3,7 @@ package com.appfor.ne3ma.service;
 import com.appfor.ne3ma.dto.GoogleLoginRequest;
 import com.appfor.ne3ma.dto.GoogleTokenInfoResponse;
 import com.appfor.ne3ma.dto.LoginResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.appfor.ne3ma.model.RefreshToken;
 import com.appfor.ne3ma.model.User;
 import com.appfor.ne3ma.repository.RefreshTokenRepository;
@@ -87,31 +88,35 @@ public class AuthService {
     }
 
     private GoogleTokenInfoResponse verifyGoogleIdToken(String idToken) {
-        GoogleTokenInfoResponse tokenInfo;
+        JsonNode tokenInfo;
 
         try {
             tokenInfo = restTemplate.getForObject(
                     GOOGLE_TOKEN_INFO_URL,
-                    GoogleTokenInfoResponse.class,
+                    JsonNode.class,
                     idToken
             );
         } catch (RestClientException ex) {
             throw new IllegalArgumentException("Invalid Google ID token", ex);
         }
 
-        if (tokenInfo == null || !StringUtils.hasText(tokenInfo.getEmail())) {
+        String email = getText(tokenInfo, "email");
+        if (!StringUtils.hasText(email)) {
             throw new IllegalArgumentException("Google token validation failed");
         }
 
-        if (!googleClientId.equals(tokenInfo.getAud())) {
+        if (!googleClientId.equals(getText(tokenInfo, "aud"))) {
             throw new IllegalArgumentException("Google token client ID mismatch");
         }
 
-        if (!tokenInfo.isEmailVerified()) {
+        if (!isEmailVerified(tokenInfo)) {
             throw new IllegalArgumentException("Google account email is not verified");
         }
 
-        return tokenInfo;
+        GoogleTokenInfoResponse response = new GoogleTokenInfoResponse();
+        response.setEmail(email);
+        response.setFullname(getText(tokenInfo, "name"));
+        return response;
     }
 
     private User createGoogleUser(GoogleTokenInfoResponse tokenInfo) {
@@ -119,15 +124,46 @@ public class AuthService {
         user.setEmail(tokenInfo.getEmail());
         user.setFullname(resolveFullName(tokenInfo));
         user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-        user.setPhone(GOOGLE_PHONE_PREFIX + tokenInfo.getSub());
+        user.setPhone(GOOGLE_PHONE_PREFIX + tokenInfo.getEmail());
         return userRepository.save(user);
     }
 
     private String resolveFullName(GoogleTokenInfoResponse tokenInfo) {
-        if (StringUtils.hasText(tokenInfo.getName())) {
-            return tokenInfo.getName();
+        if (StringUtils.hasText(tokenInfo.getFullname())) {
+            return tokenInfo.getFullname();
         }
 
         return tokenInfo.getEmail().split("@", 2)[0];
+    }
+
+    private String getText(JsonNode tokenInfo, String fieldName) {
+        if (tokenInfo == null) {
+            return null;
+        }
+
+        JsonNode value = tokenInfo.get(fieldName);
+        if (value == null || value.isNull()) {
+            return null;
+        }
+
+        String text = value.asText();
+        return StringUtils.hasText(text) ? text : null;
+    }
+
+    private boolean isEmailVerified(JsonNode tokenInfo) {
+        if (tokenInfo == null) {
+            return false;
+        }
+
+        JsonNode value = tokenInfo.get("email_verified");
+        if (value == null || value.isNull()) {
+            return false;
+        }
+
+        if (value.isBoolean()) {
+            return value.booleanValue();
+        }
+
+        return Boolean.parseBoolean(value.asText());
     }
 }
