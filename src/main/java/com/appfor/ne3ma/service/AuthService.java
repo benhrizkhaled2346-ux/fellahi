@@ -3,7 +3,6 @@ package com.appfor.ne3ma.service;
 import com.appfor.ne3ma.dto.GoogleLoginRequest;
 import com.appfor.ne3ma.dto.GoogleTokenInfoResponse;
 import com.appfor.ne3ma.dto.LoginResponse;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.appfor.ne3ma.model.RefreshToken;
 import com.appfor.ne3ma.model.User;
 import com.appfor.ne3ma.repository.RefreshTokenRepository;
@@ -20,6 +19,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -88,12 +88,12 @@ public class AuthService {
     }
 
     private GoogleTokenInfoResponse verifyGoogleIdToken(String idToken) {
-        JsonNode tokenInfo;
+        Map<String, Object> tokenInfo;
 
         try {
             tokenInfo = restTemplate.getForObject(
                     GOOGLE_TOKEN_INFO_URL,
-                    JsonNode.class,
+                    Map.class,
                     idToken
             );
         } catch (RestClientException ex) {
@@ -136,34 +136,34 @@ public class AuthService {
         return tokenInfo.getEmail().split("@", 2)[0];
     }
 
-    private String getText(JsonNode tokenInfo, String fieldName) {
+    private String getText(Map<String, Object> tokenInfo, String fieldName) {
         if (tokenInfo == null) {
             return null;
         }
 
-        JsonNode value = tokenInfo.get(fieldName);
-        if (value == null || value.isNull()) {
+        Object value = tokenInfo.get(fieldName);
+        if (value == null) {
             return null;
         }
 
-        String text = value.asText();
+        String text = String.valueOf(value);
         return StringUtils.hasText(text) ? text : null;
     }
 
-    private boolean isEmailVerified(JsonNode tokenInfo) {
+    private boolean isEmailVerified(Map<String, Object> tokenInfo) {
         if (tokenInfo == null) {
             return false;
         }
 
-        JsonNode value = tokenInfo.get("email_verified");
-        if (value == null || value.isNull()) {
+        Object value = tokenInfo.get("email_verified");
+        if (value == null) {
             return false;
         }
 
-        if (value.isBoolean()) {
-            return value.booleanValue();
+        if (value instanceof Boolean booleanValue) {
+            return booleanValue;
         }
 
-        return Boolean.parseBoolean(value.asText());
+        return Boolean.parseBoolean(String.valueOf(value));
     }
 }
