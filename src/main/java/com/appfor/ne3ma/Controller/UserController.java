@@ -68,15 +68,15 @@ public class UserController {
     }
 
     @PutMapping("/me/password")
-    public ResponseEntity<MessageResponse> changePassword(
+    public ResponseEntity<String> changePassword(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody ChangePasswordRequest request) {
-        userService.changePassword(userDetails.getUsername(), request);
-        return ResponseEntity.ok(new MessageResponse(
-                "Password changed successfully",
-                null,
-                java.time.LocalDateTime.now()
-        ));
+        try {
+            userService.changePassword(userDetails.getUsername(), request);
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body("Password not changed");
+        }
     }
 
     @GetMapping
