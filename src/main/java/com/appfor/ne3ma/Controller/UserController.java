@@ -67,7 +67,7 @@ public class UserController {
         return ResponseEntity.ok(userService.updateCurrentUser(userDetails.getUsername(), request));
     }
 
-    @PutMapping("/me/password")
+    @PostMapping("/me/password")
     public ResponseEntity<String> changePassword(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody ChangePasswordRequest request) {
