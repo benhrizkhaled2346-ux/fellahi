@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class ChangePasswordRequest {
     @NotBlank
     private String oldPassword;
-
+    private boolean logoutOtherDevices;
     @NotBlank
     private String newPassword;
 
