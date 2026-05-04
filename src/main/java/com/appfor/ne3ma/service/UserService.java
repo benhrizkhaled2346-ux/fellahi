@@ -11,7 +11,9 @@ public interface UserService {
 
     UserResponse getCurrentUser(String email);
 
-//    UserResponse updateCurrentUser(String email, UpdateUserRequest request);
+    UserResponse updateCurrentUser(String currentEmail, UpdateUserRequest request);
+
+    void changePassword(String currentEmail, ChangePasswordRequest request);
 
     List<UserResponse> listUsers();
 

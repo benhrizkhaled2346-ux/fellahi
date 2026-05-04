@@ -10,7 +10,8 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*")
 @RestController
@@ -59,14 +60,20 @@ public class UserController {
         return ResponseEntity.ok(userService.getCurrentUser(email));
     }
 
-//    @PutMapping("/me")
-//    public ResponseEntity<UserResponse> updateCurrentUser(
-//            @Valid @RequestBody UpdateUserRequest request) {
-//        if (request.getEmail() == null || request.getEmail().isBlank()) {
-//            return ResponseEntity.badRequest().build();
-//        }
-//        return ResponseEntity.ok(userService.updateCurrentUser(request.getEmail(), request));
-//    }
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateCurrentUser(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UpdateUserRequest request) {
+        return ResponseEntity.ok(userService.updateCurrentUser(userDetails.getUsername(), request));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(userDetails.getUsername(), request);
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping
     public ResponseEntity<List<UserResponse>> listUsers() {

@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.util.StringUtils;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -112,26 +113,44 @@ public class UserServiceImpl implements UserService {
         return toResponse(user);
     }
 
-//    @Override
-//    public UserResponse updateCurrentUser(String email, UpdateUserRequest request) {
-//        User user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-//
-//        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-//            if (!request.getEmail().equals(user.getEmail())
-//                    && userRepository.existsByEmail(request.getEmail())) {
-//                throw new IllegalArgumentException("Email already exists");
-//            }
-//            user.setEmail(request.getEmail());
-//        }
-//
-//        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-//            user.setPassword(passwordEncoder.encode(request.getPassword()));
-//        }
-//
-//        User saved = userRepository.save(user);
-//        return toResponse(saved);
-//    }
+    @Override
+    public UserResponse updateCurrentUser(String currentEmail, UpdateUserRequest request) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!StringUtils.hasText(request.getFullname())
+                && !StringUtils.hasText(request.getEmail())) {
+            throw new IllegalArgumentException("At least one field must be provided");
+        }
+
+        if (StringUtils.hasText(request.getFullname())) {
+            user.setFullname(request.getFullname().trim());
+        }
+
+        if (StringUtils.hasText(request.getEmail())) {
+            String newEmail = request.getEmail().trim();
+            if (!newEmail.equals(user.getEmail()) && userRepository.existsByEmail(newEmail)) {
+                throw new IllegalArgumentException("Email already exists");
+            }
+            user.setEmail(newEmail);
+        }
+
+        User saved = userRepository.save(user);
+        return toResponse(saved);
+    }
+
+    @Override
+    public void changePassword(String currentEmail, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
 
     @Override
     public List<UserResponse> listUsers() {

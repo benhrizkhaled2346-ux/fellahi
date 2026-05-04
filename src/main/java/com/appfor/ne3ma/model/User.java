@@ -37,6 +37,7 @@ public class User {
     private String phone;
 
 
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
