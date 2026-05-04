@@ -68,11 +68,15 @@ public class UserController {
     }
 
     @PutMapping("/me/password")
-    public ResponseEntity<Void> changePassword(
+    public ResponseEntity<MessageResponse> changePassword(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(userDetails.getUsername(), request);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new MessageResponse(
+                "Password changed successfully",
+                null,
+                java.time.LocalDateTime.now()
+        ));
     }
 
     @GetMapping
